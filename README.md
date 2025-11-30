@@ -33,6 +33,282 @@ PHP，Python、JavaScript可以归类为动态语言，特点是变量不用指�
 
 PHP会是创业公司首选，方便更新迭代速度快，对线上业务影响小。当公司发展到一定规模，则会因为效率性能问题容易被Java、Golang等语言替代，对热更新、规范化上线等相关操作，会让静态语言需要编译或重启服务这类问题成为边缘化的小问题。性能效率才是中大型公司更重要考虑
 
+
+
+### 网络协议
+
+现代网络发送一张几十兆高清图片相当于寄一栋大楼
+
+寄大楼 -> 发照片要处理问题
+
+- 需要知道目标地址 -> 寻址和路由
+- 需要一条到达目标地址的路 -> 数据链路
+- 需要将大楼拆分成包装箱能存放的大小 ->分片
+- 需要将每一部分编号 -> 序列码
+- 需要将包装箱装车 -> 封装
+- 车队运输时可能堵车 -> 阻塞控制
+
+到达目的地址（数据包到达）
+
+- 检查每一车是否完整 -> 错误检测和校正
+- 处理在运输路上丢失和损毁的部分 -> 数据重发，冗余恢复
+- 拆除包装，将每一部分重新组装起来 -> 重组
+
+如何查找目的地址
+如何选择运输路线
+如何拆分和重建大楼
+需要一些流程规范、运输指南、使用说明，称为协议
+
+协议有很多种
+不同的协议处理不同层次的问题
+发送方和接收方要使用相同的协议，才能还原数据
+
+网络协议实现最主要有两个
+
+- ISO颁布OSI七层模型
+
+  越往上处理问题越单一，越往下越基础
+
+  - 主机层
+
+    - 应用层
+
+      7层或L7，网络进程到应用程序
+      针对特定应用规定各层协议、时序、表示等进行封装
+      在端系统中用软件来实现，如HTTP
+
+    - 表示层
+
+    - 会话层
+
+    - 传输层
+
+      4层或L4，在网络各个节点之间可靠的分发数据包
+      所有传输遗留问题复用；流量；可靠
+      传输数据段 Segment
+
+  - 媒介层
+
+    - 网络层
+
+      在网络的各个节点之间进行地址分配、路由和分发报文（不可靠）
+      路由；拥塞控制
+      传输数据包 Package
+
+    - 数据链路层
+
+      可靠的点对点数据直链
+      检错和纠错；多路访问；寻址
+      传输数据帧 Frame（Bit组合，一片一片传）
+
+    - 物理层 
+      不可靠的点对点数据直链，物理链路电信号易受干扰
+      传输 Bit
+
+    4层和7层是OSI协议中最重要两个层
+
+    
+
+  缺点：
+
+  - 进展缓慢
+  - 太过复杂
+  - 收费
+
+  市场被TCP/IP取代
+
+  
+
+- TCP/IP
+
+  一系列协议，四层
+
+  - 应用程序
+
+    - 应用层
+
+      HTTP、DNS、FTP、SSH、TELNET
+
+  - 操作系统
+
+    - 传输层
+
+      UDP、TCP协议
+
+    - 网络互连层
+
+      ARP、IP、ICMP协议
+
+  - 设备驱动网络接口
+
+    - 网络接口层
+
+      以太网、Wifi、PPP协议
+
+    - （硬件）
+
+![image-20251130193716840](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2Fa7562c61afc9f8954443ef93a507bf2e.png)
+
+ARP：通过IP反查MAC协议，相当于翻译器
+
+![image-20251130193914461](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2Ff25784cf77b0e0a7bc743455fca7613d.png)
+
+
+
+以太网，主要解决怎么传的问题
+
+IP协议，主要解决往哪传问题
+
+UDP协议/TCP协议，主要解决可靠性问题
+
+
+
+### IP协议
+
+####  IP地址
+
+- 由32位二进制数组成
+
+- 分为网络标识和主机标识两部分
+
+- 子网掩码确定了32位里，哪些是网络标识，哪些是主机标识
+
+  1为网络标识，0为主机标识
+
+```
+# IP地址
+11000000 10101000 00000000 00000001
+为方便转为十进制：192.168.0.1
+
+# 子网掩码
+11111111 11111111 11111111 00000000
+255.255.255.0
+
+11111111 11111111 11111111 00000000
+11000000 10101000 00000000 00000001
+__________________________ ________
+前24位全部为1，网络标识		后八位全部为0，主机标识
+或写成 192.168.0.1/24 ip地址/子网掩码位数
+```
+
+#### 路由控制
+
+同一内网数据传输
+
+![image-20251130202621852](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2Faa81bf50dc58eb403f1071c0b85d1f57.png)
+
+网络之间的数据传输
+
+![动画](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2F06237045903383cbe1590a34fcf4f6b5.gif)
+
+#### IP分片和重组
+
+- 不同的网络最大传输单位（MTU）大小不同
+- IP协议是这些网络的上层封装，它对此进行抽象
+- 路径发现MTU会在发送数据帧超过网络MTU时自动调整并重发数据
+- IP报文由路由器进行分片，目标主机进行重组
+
+
+
+数据包
+
+```
+发送端MAC地址/接收端MAC地址
+以太网类型/校验数据FCS
+
+发送端IP地址/接收端IP地址
+协议类型
+
+源端口/目标端口号
+```
+
+数据帧
+
+![数据帧](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2Fa93432d92487d3f50abee5587132dab6.png)
+
+网卡
+
+![image-20251130200659454](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2Fdeeaac809cb46eccba951f79ba50e6fc.png)
+
+交换机根据MAC地址转发数据 
+
+
+
+#### IP相关协议
+
+- ICMP 
+
+  确认IP包是否成功送达通知发送过程中IP包被废弃的原因、改善网络设置
+
+- ARP
+
+  通过IP地址查询MAC地址
+
+- DHCP
+
+  动态分配IP地址
+
+- DNS
+
+  通过域名查询对应的IP地址
+
+- NAT
+
+  将外网IP和端口映射到内网机器上
+
+
+
+### UDP协议
+
+#### 端口
+
+常用端口
+
+- 21 FTP 文件传输服务
+- 22 SSH 命令行远程登录
+- 25 SMTP 邮件发送服务
+- 80 HTTP 网站服务
+- 110 POP3 邮件接收服务
+- 139 SMB SAMBA共享
+- 143 IMAP 邮件接收服务
+- 443 HTTP 加密网站服务
+- 3306 MySQL 数据库服务
+- 3389 RDP 远程桌面服务
+- 6379 Redis 缓存服务器
+- 8080 Proxy 代理服务器
+
+#### 校验和
+
+UDP header
+
+![image-20251130204533862](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2Ff5d60b5b4f1706f93a143bfd563cbbea.png)
+
+### TCP协议
+
+#### 序列号机制和三次握手
+
+TCP header
+
+![image-20251130204810407](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2Fda784639e5aebbf4785d542e2ef1bd42.png)
+
+校验和的值：头部和数据部分的和，再对其求反
+
+客户端和服务端都会维护一个序列码 Client seq=1，2、Server seq=24（此时连接已关闭）
+
+![image-20251130204958090](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2Fddff29e50ae34cb23fd2e2654c105311.png)
+
+#### 滑动窗口
+
+为提升序列机制和三次握手效率，提出滑动窗口，可以理解为并行
+
+![image-20251130205347365](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2F9653f0de209c2db2831df79eab05fe46.png)
+
+#### 拥塞控制
+
+![image-20251130205510734](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2F100c9ab1aed604dedc10daa38bd39cf2.png)
+
+
+
 ```bash
 # 安装php
 apt install php8.1-cli
@@ -112,6 +388,11 @@ sudo systemctl restart nginx
 # 验证安装
 redis-cli ping
 php -m | grep redis
+
+# 安装composer
+apt install composer
+# 安装Predis
+composer require predis/predis
 ```
 
 VSCode远程编辑
@@ -147,6 +428,105 @@ lsof -i tcp
 ```
 
 ## Swoole
+
+PHP一般只写Web程序，对网络通信架构、异步、多线程、协程，多进程这些特性不够完善
+
+2010年底，韩天峰为实现TCP Socket Server实现SMTP协议接收数据需求，并开源该系统，为PHP从单纯的Web开发扩展到更大的空间
+
+Swoole基于C语言面向生成环境的PHP异步网络通信引擎，使PHP开发人员可以编写高性能的异步并发TCP、UDP、Unix Socket、HTTP，WebSocket服务。Swoole可以广泛应用于互联网、移动通信、企业软件、云计算、网络游戏、物联网IOT、车联网、智能家居等领域
+
+特性
+
+PHP的协程高性能网络通信引擎，使用C/C++语言编写PHP扩展，提供了多种通信协议的网络服务器和客户端模块
+
+- TCP、UDP、UnixSock 服务器端
+- Http、WebSocket、Http2.0 服务器端
+- 协程TCP、UDP、UnixSock
+- 协程MySQL
+- 协程Redis
+- 协程Http、WebSocket
+- 协程Http2
+- AsyncTask
+- 毫秒定时器
+- 协程文件读写
+
+Swoole4支持完整的协程编程模式，可以使用完全同步的代码实现异步程序
+
+PHP代码无需额外增加任何关键词，底层自动进行协程调度，实现异步IO
+
+异步回调模块已经过时，在4.3版本中移除了异步模块，使用Coroutine协程模块（协程实现异步）
+
+Workerman与Swoole区别
+
+- workerman 纯PHP，PHP框架 
+  Swoole C语言，作为php扩展
+- Workerman 多进程
+  Swoole 协程、多进程、多线程
+- Swoole不使用Libevent（C++事件通知库，处理I/O事件、信号事件、定时事件），不依赖PHP的stream、sockets、pcntl、posix、sysvmg等扩展
+- Swoole性能优于Workerman
+
+
+
+### Server
+
+```PHP
+Server(string $host, int $port=0, int $mode=SWOOLE_PROCERSS, int $sock_type=SWOOLE_SOCK_TCP);
+```
+
+- `$host` 主机
+
+  `IPv4`使用`127.0.0.1`监控本机，`0.0.0.0`监控任何地址
+
+  `IPv6`使用`::1`监听本机，`::`（相当于`0:0:0:0:0:0:0:0`）监听所有地址
+
+- `$port` 端口
+
+  `$sock_type`为`UnixSocket Stream、Dgram`，此参数忽略
+
+  监听小于`1024`端口需要`root`权限
+
+- `$mode` 运行模式
+
+  - `SWOOLE_PROCESS` 多进程模式（默认）
+    最复杂的方式，用了大量的进程间通信、进程管理机制
+
+  - `SWOOKE_BASE` 基础模式，单线程模式
+    传统的异步非阻塞`Server`，如果客户端连接之间不需要交互，可以使用BASE模式，如`Memcache`、`Http`服务器等
+
+- `$sock_type` 指定`Socket`类型
+
+  `TCP`、`UDP`、`TCP6`、`UDP6`、`UnixSocket`、`Stream/Dgram` 6种
+
+  `SWOOLE_SOCK_TCP`（默认）	`SWOOLE_SOCK_TCP6`	`SWOOLE_SOCK_UDP`
+
+  `SWOOLE_SOCK_UDP6`	`SWOOLE_SOCK_DGRAM`	`SWOOLE_SOCK_STREAM`
+
+```bash
+# 安装进程管理增强包，传统网络工具
+apt install psmisc net-tools -y
+# 查看进程树
+pstree -p 进程号
+# 查看谁在用这个端口
+fuser 9501/tcp
+```
+
+```php
+<?php
+// $server = new Swoole\Server("0.0.0.0",8888, SWOOLE_PROCESS, SWOOLE_SOCK_TCP);   // 4.x版本后只支持命名空间，不再支持下划线风格
+$server = new Swoole\Server("0.0.0.0",8888, SWOOLE_PROCESS, SWOOLE_SOCK_UDP);
+// var_dump($server);
+
+// $server->on("Receive", function(){});	// TCP回调
+$server->on("Packet", function(){});	// UDP回调
+
+$server->start();
+
+// 命令行查看端口
+netstat -nltup | grep 8888	// TCP
+netstat -nultup | grep 8888	// UDP
+```
+
+
 
 ```php
 // http.php
@@ -339,7 +719,6 @@ var_dump($_SERVER);
     ["argc"]=>
     int(1)
     } */
-
 ```
 
 传统的全局变量如`$_REQUEST`、`$_SERVER`、`$_COOKIE`、`$_GET`、`$_POST`、`$_FILES`、`$_SESSION`等都无效
@@ -729,6 +1108,11 @@ root       42677   42675  0 04:35 pts/1    00:00:00 php server/task.php // Task 
 
 `Swoole`中，`Redis`服务端是基于`Redis`协议的服务器程序，可以使用`Redis`客户端连接这个服务
 
+`Swoole`协程环境不使用`phpredis`扩展
+
+- 阻塞`IO`问题 - 传统`phpredis`扩展是同步阻塞的，会阻塞整个进程
+- 协程冲突 - 在`Swoole`协程中使用会导致调度失效
+
 ```php
 <?php
 use Swoole\Server;
@@ -855,9 +1239,237 @@ OK
 3) "3"
 ```
 
+## 进程、线程、协程
+
+### 进程、线程、协程
+
+#### 进程、线程
+
+进程是一个具有一定独立功能的程序在一个数据集上的一次动态执行的过程，是操作系统进行资源分配和调度的一个独立单位（由CPU调度），是应用程序运行的载体
+
+```bash
+root@ubuntu:/var/www/html/dist# ps -ef | grep php
+root       51867       1  0 09:53 ?        00:00:01 php-fpm: master process (/etc/php/8.1/fpm/php-fpm.conf)	# php-fpm主进程
+www-data   51870   51867  0 09:53 ?        00:00:00 php-fpm: pool www
+www-data   51871   51867  0 09:53 ?        00:00:00 php-fpm: pool www
+# 每个php-fpm均为一个进程
+```
+
+线程是程序执行中一个单一的顺序控制流程，是程序执行流的最小单位，是处理器调度和分派的基本单位，一个进程可以有多个线程
+
+#### 进程线程区别
+
+- 线程是程序执行的最小单位，而进程是操作系统分配资源（分配运算力，内存空间）的最小单位
+- 一个进程由一或多个线程组成，线程是一个进程中代码的不同执行路线
+- 进程之间互相独立，但同一进程下的各个线程之间共享程序的内存空间（包括代码段，数据集，堆等）及一些进程级的资源（如打开文件和信号等），某进程内的线程在其他进程不可见
+- 调度和切换：线程上下文切换比进程上下文要快
+- 线程天生的共享内存空间，线程间的通信更简单，避免进程IPC（进程间通信）引入新的复杂度
+- 进程开销大，线程开销小
+
+
+
+#### PHP实现多进程
+
+pcntl PHP多进程扩展 
+
+```bash
+# 验证是否安装
+php -m | grep pcntl
+```
+
+![image-20251130221749513](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2F261624e0cbde530139d0e301288e076a.png)
+
+```php
+$pid = pcntl_fork();    // fork是创建一个子进程，父进程和子进程都从fork位置开始向下继续执行
+// 父进程在执行过程中，得到fork返回值为子进程号
+// 子进程执行过程中，得到的值为0
+// echo $pid.PHP_EOL;
+/* 
+php pcntl_fork.php 
+54216   // 父进程执行结果：子进程号
+0       // 子进程执行结果：0
+*/
+
+if ($pid > 0) {
+    echo "父进程".PHP_EOL;
+} else if($pid == 0) {
+    echo "子进程".PHP_EOL;
+}
+```
+
+```php
+// 模拟多进程，先打印111,10秒后打印222
+if ($pid = pcntl_fork() == 0) {
+    sleep(10);
+    echo "222".PHP_EOL;
+}
+if($pid == 0) {
+    if(pcntl_fork() == 0) {
+        echo "111".PHP_EOL;
+    }
+}
+```
+
+```php
+// 进程间通信
+$str = 'abc';
+$pid = pcntl_fork();
+if( $pid > 0) {
+    $str .= '111';  
+    echo $str.PHP_EOL;  // 父进程 abc111
+} else {
+    echo $str.PHP_EOL;  // 子进程 abc
+}
+// 内存不共享，父进程与子进程变量不同
+```
+
+#### 进程状态
+
+![image-20251130224150008](https://cdn.jsdelivr.net/gh/lizzzy/picBed@master/img/20251130%2Fc96c15934141da208d579c039c488e10.png)
+
+```bash
+root@ubuntu:/var/www/html/dist# top
+top - 14:44:15 up 1 day, 11:21,  2 users,  load average: 0.11, 0.19, 0.17
+Tasks: 164 total,   1 running, 163 sleeping,   0 stopped,   0 zombie
+# 进程				运行		睡眠			停止			僵尸
+```
+
+僵尸进程：当子进程比父进程先结束，父进程又没有回收释放子进程，子进程形成一个僵尸进程
+
+
+
+#### 进程信号
+
+Linux中以SIG字符串开头后跟信号名称，及对应的数值（操作系统真正认识信号）
+
+可处理
+
+- `SIGHUP(1)` 挂起信号
+
+  终端断开，如关闭`SSH`，或`kill -HUP 进程ID`
+
+  让程序重新读取配置文件
+
+- `SIGINT(2)` 中断信号
+
+  终端`Ctrl+C`，保存数据后退出
+
+- `SIGTERM(15)` 终止信号
+
+  请正常退出 `kill 进程ID`
+
+  程序可以清理资源后退出
+
+强制信号，不可处理
+
+- `SIGKILL(9)` 强制杀死
+
+  `kill -9 进程ID`
+
+  进程无法捕获，立即终止，可能会导致数据丢失
+
+- `SIGSTOP(19)` 强制暂停
+
+  `kill -STOP 进程ID` 或 `Ctrl+z`
+
+  冻结，暂停进程，不可捕获
+
+- `SIGCONT(18)` 继续执行
+
+  `kill -CONT 进程ID` 或 `fg`命令
+
+  恢复`SIGSTOP`暂停的进程
+
+特殊信号
+
+- `SIGCHLD(17)` 子进程状态改变
+
+  子进程退出时自动发给父进程
+
+  父进程回收子进程资源
+
+- `SIGPIPE(13)` 管道破裂
+
+  向已关闭的管道写数据
+
+  防止程序崩溃
+
+#### 多线程
+
+PHP默认不支持多线程
+
+pthread PHP多线程扩展，不再维护，使用parallel（需ZTS线程安全版本PHP，Ubuntu默认NTS非线程安全版本版本）或Swoole
+
+#### 线程安全
+
+多线程让程序变得不安分的因素，在使用多线程之前，首先要考虑吧线程安全问题
+
+线程安全：编程术语，某个函数，函数库在多线程环境中被调用时，能够正确处理多个线程之间的共享变量，使程序功能正确完成
+
+PHP实现线程安全主要使用TSRM机制，对全局变量和静态变量进行隔离
+将全局变量和静态变量给每个线程都复制一份，各线程使用的都是主线程的一个备份
+从而避免变量冲突，也就不会出现线程安全问题
+
+
+
+
+
+
+
+### Swoole异步进程服务
+
+### 单进程管理Process
+
+### 进程间通信
+
+- 管道通信
+
+- 消息队列通信
+
+- 进程信号通信
+
+- 共享内存通信
+
+  映射一段能被其他进程访问的内存，这段共享内存由一个进程创建，但多个进程都可以访问
+  共享内存是最快的IPC（进程间通信）方式，针对其他进程间通信方式效率低而专门设计
+  往往与其通信机制配合使用，实现进程间的同步和通信
+
+- 套接字通信
+
+- 第三方通信，如文件操作，mysql，redis等
+
+### 进程池与进程管理器
+
+### 进程同步与共享内存
+
+## Swoole协程系统
+
+### Swoole协程系统
+
+### 协程应用与容器
+
+### 协程操作系统API
+
+### 协程间通信Channel及Wait
+
+### 协程并发调度
+
+### 协程连接池
+
+### 协程服务客户端
+
+### 一键协程化
+
+## 毫秒定时器/TCP数据边界
+
+### 毫秒定时器
+
+### TCP数据边界（粘包）
+
+## 将Laravel改成Swoole版
+
 
 
 ## Hypef
 
 Hypef是基于Swoole4.3实现的高性能，高灵性的PHP协程架构，内置协程服务器及大量常用组件、性能较传统基于PHP-FPM的架构有质的提升，提供超高性能的同时，也保持及其灵活的可扩展性，标准组件均基于PSR标准实现，基于强大的依赖注入设计。保证绝大部分组件或类都是可替换与可复用
-

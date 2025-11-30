@@ -96,6 +96,13 @@ $server->on('Receive', function ($server, $fd, $reactor_id, $data) {
     } else {
         $server->send($fd, "-ERR unknown command\r\n");
     }
+
+    // 同时可以把数据备份到系统Redis(6379)
+    go(function() use ($server) {
+        $redis = new Redis();
+        $redis->connect('127.0.0.1', 6379);
+        $redis->set('backup', json_encode($server->data));
+    });
 });
 
 $server->on('WorkerStart', function($serv) use ($server) {
